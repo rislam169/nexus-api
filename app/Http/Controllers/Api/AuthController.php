@@ -33,7 +33,7 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Email or password is incorrect']);
+            return $this->error(['message' => ['Email or password is incorrect']], null, 422);
         }
 
         /** @var User $user */

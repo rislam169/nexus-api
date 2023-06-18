@@ -19,7 +19,7 @@ trait HttpResponses
         return response()->json([
             'status' => 'error',
             'message' => $message,
-            'data' => $data
+            'errors' => $data
         ], $code);
     }
 }
