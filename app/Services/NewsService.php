@@ -12,13 +12,15 @@ class NewsService
     /** News and article categoris to be fetched */
     private $categories = [
         "General",
-        "Business",
-        "Entertainment",
         "Health",
         "Science",
         "Sports",
         "Technology"
     ];
+
+    /** Default image used if there is no image found inside article */
+    private $defaultImage = "https://i.insider.com/648de17251ea980019d6c024?width=1200&format=jpeg";
+
     /**
      * Fetch news from external api and store in our database
      * 
@@ -95,7 +97,7 @@ class NewsService
                 return @$multimedia['width'] > 500 && $multimedia['width'] < 700;
             });
             $selectedImage = array_values($image);
-            $image_url = isset($selectedImage[0]) ? "https://www.nytimes.com/" . $selectedImage[0]['url'] : "https://www.nytimes.com/images/2018/02/06/sports/06drape-web1/merlin_133302105_c3e586b3-6eff-4b50-adfb-71b88c91091f-popup.jpg";
+            $image_url = isset($selectedImage[0]) ? "https://www.nytimes.com/" . $selectedImage[0]['url'] : $this->defaultImage;
 
             return [
                 "source" => $article["source"] ?? "Anonymous",
@@ -128,7 +130,7 @@ class NewsService
                 "title" => $article["webTitle"],
                 "description" => $article["webTitle"],
                 "url" => $article["webUrl"],
-                "image_url" => $article["fields"]["thumbnail"],
+                "image_url" => $article["fields"]["thumbnail"] ?? $this->defaultImage,
                 "published_at" => Carbon::parse($article["webPublicationDate"])->format('Y/m/d'),
                 "created_at" => Carbon::now()->format('Y/m/d H:i:s'),
                 "updated_at" => Carbon::now()->format('Y/m/d H:i:s'),
@@ -152,7 +154,7 @@ class NewsService
                 "title" => $article["title"],
                 "description" => $article["description"],
                 "url" => $article["url"],
-                "image_url" => $article["urlToImage"] ?? "https://i.insider.com/648de17251ea980019d6c024?width=1200&format=jpeg",
+                "image_url" => $article["urlToImage"] ?? $this->defaultImage,
                 "published_at" => Carbon::parse($article["publishedAt"])->format('Y/m/d'),
                 "created_at" => Carbon::now()->format('Y/m/d H:i:s'),
                 "updated_at" => Carbon::now()->format('Y/m/d H:i:s'),
