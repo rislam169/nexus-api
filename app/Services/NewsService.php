@@ -73,7 +73,8 @@ class NewsService
             Log::error($th);
         }
 
-        $articles = collect($articles); // Make a collection to use the chunk method
+        // Make a collection to use the chunk method
+        $articles = collect($articles);
 
         // It will chunk the dataset in smaller collections containing 500 values each. 
         // Play with the value to get best result
