@@ -22,9 +22,9 @@ class UserSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sources' => 'required|array|min:1',
-            'categories' => 'required|array|min:1',
-            'authors' => 'required|array|min:1',
+            'sources' => 'nullable|array|min:1',
+            'categories' => 'nullable|array|min:0',
+            'authors' => 'nullable|array|min:1',
         ];
     }
 }

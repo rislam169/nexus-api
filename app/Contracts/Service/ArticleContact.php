@@ -6,5 +6,5 @@ interface ArticleContact
 {
     public function importArticles($isInitialFetch = false);
 
-    public function searchArticles($query);
+    public function searchArticles($query, $user = null);
 }

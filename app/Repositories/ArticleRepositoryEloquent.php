@@ -63,4 +63,25 @@ class ArticleRepositoryEloquent extends BaseRepository implements ArticleReposit
         }
         return $articles->limit(50)->get();
     }
+
+    public function searchArticlesByPreference($query)
+    {
+        $articles = $this->model->inRandomOrder();
+
+        $isFirstQuery = true;
+        foreach ($query as $key => $queryField) {
+            if ($queryField) {
+                foreach ($queryField as $queryFieldValue) {
+                    if ($isFirstQuery) {
+                        $articles = $articles->where($key, $queryFieldValue);
+                        $isFirstQuery = false;
+                    } else {
+                        $articles = $articles->orWhere($key, $queryFieldValue);
+                    }
+                }
+            }
+        }
+
+        return $articles->limit(70)->get();
+    }
 }
