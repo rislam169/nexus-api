@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Contracts\Service\ArticleContact;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SearchArticleRequest;
 use App\Models\Article;
 use App\Traits\HttpResponses;
 use Carbon\Carbon;
@@ -12,39 +14,28 @@ class ArticleController extends Controller
 {
     use HttpResponses;
 
-    /** Returns the response with articles */
-    public function index(Request $request)
+    /**
+     * @var ArticleContact
+     */
+    private $articleService;
+
+    public function __construct(ArticleContact $articleService)
     {
+        $this->articleService = $articleService;
+    }
 
-        $articles = Article::inRandomOrder();
+    /** 
+     * Search articles based on the query parameter
+     * Returns Random 50 articles if no query found
+     * 
+     * @param SearchArticleRequest Request with or witout query parameter
+     * @return $articles Articles as reponse
+     */
+    public function search(SearchArticleRequest $request)
+    {
+        $query = $request->Validated();
+        $articles = $this->articleService->searchArticles($query);
 
-        // Search category if available in query parameter
-        if (!empty($request->get("category"))) {
-            $articles = $articles->where("category", $request->get("category"));
-        }
-
-        // Search source if available in query parameter
-        if (!empty($request->get("source"))) {
-            $articles = $articles->where("source", $request->get("source"));
-        }
-
-        // Search articles publish at or later of fromDate
-        if (!empty($request->get("fromDate"))) {
-            $articles = $articles->whereDate("published_at", ">=", Carbon::parse($request->get("fromDate")));
-        }
-
-        // Search articles publish at or before of toDate
-        if (!empty($request->get("toDate"))) {
-            $articles = $articles->whereDate("published_at", "<=", Carbon::parse($request->get("toDate")));
-        }
-
-        // Search for keyword if available in query parameter
-        if (!empty($request->get("searchKey"))) {
-            $articles = $articles->where("title", 'like', '%' . $request->get("searchKey") . '%')
-                ->orWhere("description", 'like', '%' . $request->get("searchKey") . '%')
-                ->orWhere("category", $request->get("searchKey"));
-        }
-
-        return $this->success($articles->limit(50)->get());
+        return $this->success($articles);
     }
 }

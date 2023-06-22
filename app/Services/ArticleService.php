@@ -2,13 +2,24 @@
 
 namespace App\Services;
 
+use App\Contracts\Repositories\ArticleRepository;
+use App\Contracts\Service\ArticleContact;
 use App\Models\Article;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class NewsService
+class ArticleService implements ArticleContact
 {
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
+    public function __construct(ArticleRepository $articleRepository)
+    {
+        $this->articleRepository = $articleRepository;
+    }
     /** News and article categoris to be fetched */
     private $categories = [
         "General",
@@ -26,23 +37,22 @@ class NewsService
      * 
      * @param $isInitialFetch True if running first system boot up, default false
      */
-    public function fetchArticles($isInitialFetch = false)
+    public function importArticles($isInitialFetch = false)
     {
         /** Holds the articles from different data sources  */
         $articles = [];
 
         /** Fetch articles from The NewYork Times */
         $date = Carbon::now()->format("Ymd");
+        $from = $isInitialFetch ? Carbon::now()->subDays(3)->format("Y-m-d") : $date;
         $facetFq = 'fq=news_desk%3A(%22' . implode("%22%2C%20%22", $this->categories) . '%22)';  // Search query for new york time api
         try {
-            $response = Http::get("https://api.nytimes.com/svc/search/v2/articlesearch.json?begin_date=$date&end_date=$date&facet=true&facet_fields=news_desk&facet_filter=true&" . $facetFq . '&api-key=' . config("newsapi.nytimes.api_key"));
+            $response = Http::get("https://api.nytimes.com/svc/search/v2/articlesearch.json?begin_date=$from&end_date=$date&facet=true&facet_fields=news_desk&facet_filter=true&" . $facetFq . '&api-key=' . config("newsapi.nytimes.api_key"));
             $response = $response->collect()->get("response");
             $articles = $this->formatNewYorkTimesArticle($response["docs"]);
         } catch (\Throwable $th) {
             Log::error($th);
         }
-
-
 
         /** Fetch articles from The Gurdian */
         $date = Carbon::now()->format("Y-m-d");
@@ -62,7 +72,6 @@ class NewsService
         /** Fetch articles from News Api */
         try {
             foreach ($this->categories as $category) {
-                $from = $isInitialFetch ? Carbon::now()->subDays(3)->format("Y-m-d") : $date;
                 $response = Http::get("https://newsapi.org/v2/everything?q=" . strtolower($category) . "&from=$from&to=$date&apiKey=" . config("newsapi.newsapi.api_key"));
                 $response = $response->collect()->get('articles');
                 if (isset($response[0])) {
@@ -78,10 +87,10 @@ class NewsService
 
         // It will chunk the dataset in smaller collections containing 500 values each. 
         // Play with the value to get best result
-        $chunks = $articles->chunk(30);
+        $chunks = $articles->chunk(50);
 
         foreach ($chunks as $chunk) {
-            Article::insert($chunk->toArray());
+            $this->articleRepository->insertMultiple($chunk->toArray());
         }
     }
 
@@ -91,7 +100,7 @@ class NewsService
      * @param $articles Unformated array of articles from the new york times
      * @return $articles Formated array of articles 
      */
-    public function formatNewYorkTimesArticle($articles)
+    private function formatNewYorkTimesArticle($articles)
     {
         return array_map(function ($article) {
             $image = array_filter($article["multimedia"], function ($multimedia) {
@@ -121,7 +130,7 @@ class NewsService
      * @param $articles Unformated array of articles from the gurdian
      * @return $articles Formated array of articles 
      */
-    public function formatTheGurdianArticle($articles)
+    private function formatTheGurdianArticle($articles)
     {
         return array_map(function ($article) {
             return [
@@ -145,7 +154,7 @@ class NewsService
      * @param $articles Unformated array of articles from the  News api
      * @return $articles Formated array of articles 
      */
-    public function formatNewsApiArticle($articles, $category)
+    private function formatNewsApiArticle($articles, $category)
     {
         return array_map(function ($article) use ($category) {
             return [
@@ -161,5 +170,16 @@ class NewsService
                 "updated_at" => Carbon::now()->format('Y/m/d H:i:s'),
             ];
         }, $articles);
+    }
+
+    /**
+     * Collect articles from repository after searching
+     * 
+     * @param $query Array of query data
+     * @return Collection of articles
+     */
+    public function searchArticles($query)
+    {
+        return $this->articleRepository->searchArticles($query);
     }
 }
