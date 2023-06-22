@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Contracts\Service\UserSettingContact;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserSetting;
@@ -12,11 +13,22 @@ class UserController extends Controller
 {
     use HttpResponses;
 
+    /**
+     * @var UserSettingContact
+     */
+    private $userSettingService;
+
+    public function __construct(UserSettingContact $userSettingService)
+    {
+        $this->userSettingService = $userSettingService;
+    }
+
     /** Return user user information including user setting as a response */
     public function details(Request $request)
     {
         $user = $request->user();
-        $userSetting = UserSetting::where("user_id", $user->id)->first();
+        $userSetting = $this->userSettingService->getSettingByUserId($user->id);
+
         return $this->success(compact("user", "userSetting"));
     }
 }

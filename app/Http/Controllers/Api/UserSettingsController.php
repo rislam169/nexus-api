@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Contracts\Service\UserSettingContact;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserSettingsRequest;
-use App\Models\UserSetting;
 use App\Traits\HttpResponses;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class UserSettingsController extends Controller
 {
     use HttpResponses;
+
+    /**
+     * @var UserSettingContact
+     */
+    private $userSettingService;
+
+    public function __construct(UserSettingContact $userSettingService)
+    {
+        $this->userSettingService = $userSettingService;
+    }
 
     /** Save user settings */
     public function save(UserSettingsRequest $request)
@@ -22,10 +31,8 @@ class UserSettingsController extends Controller
         try {
             DB::beginTransaction();
 
-            $settings = UserSetting::updateOrCreate(
-                [
-                    "user_id" => $userId
-                ],
+            $settings = $this->userSettingService->updateOrCreateUserSetting(
+                $userId,
                 [
                     "source" => $userSettings["sources"],
                     "category" => $userSettings["categories"],
@@ -37,7 +44,6 @@ class UserSettingsController extends Controller
 
             return $this->success($settings, "Your settings saved successfully!");
         } catch (\Exception $e) {
-            dd($e->getMessage());
 
             DB::rollback();
             Log::error($e);
