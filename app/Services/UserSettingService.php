@@ -21,11 +21,12 @@ class UserSettingService implements UserSettingContact
      * Return user settings finding by user id
      * 
      * @param userId Id of the user
+     * @param columns If ask for specific column
      * @return userSetting Collection of userSetting 
      */
-    public function getSettingByUserId($userId)
+    public function getSettingByUserId($userId, $columns = ["*"])
     {
-        return $this->userSettingRepository->where("user_id", $userId)->first();
+        return $this->userSettingRepository->where("user_id", $userId)->first($columns);
     }
 
     /**

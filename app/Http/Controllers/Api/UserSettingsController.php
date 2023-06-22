@@ -31,12 +31,13 @@ class UserSettingsController extends Controller
         try {
             DB::beginTransaction();
 
+
             $settings = $this->userSettingService->updateOrCreateUserSetting(
                 $userId,
                 [
-                    "source" => $userSettings["sources"],
-                    "category" => $userSettings["categories"],
-                    "author" => $userSettings["authors"]
+                    "source" => !empty($userSettings["sources"]) ? $userSettings["sources"] : null,
+                    "category" => !empty($userSettings["categories"]) ? $userSettings["categories"] : null,
+                    "author" => !empty($userSettings["authors"]) ? $userSettings["authors"] : null
                 ]
             );
 
@@ -47,7 +48,7 @@ class UserSettingsController extends Controller
 
             DB::rollback();
             Log::error($e);
-            return $this->error(['message' => "Settings not saved! Please try again."], null, 500);
+            return $this->error(['message' => "Settings not saved! Please try again."], $e->getMessage(), 500);
         }
     }
 }

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Contracts\Repositories\ArticleRepository;
 use App\Contracts\Service\ArticleContact;
-use App\Models\Article;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -16,9 +15,15 @@ class ArticleService implements ArticleContact
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository)
+    /**
+     * @var UserSettingService
+     */
+    private $userSettingService;
+
+    public function __construct(ArticleRepository $articleRepository, UserSettingService $userSettingService)
     {
         $this->articleRepository = $articleRepository;
+        $this->userSettingService = $userSettingService;
     }
     /** News and article categoris to be fetched */
     private $categories = [
@@ -176,10 +181,15 @@ class ArticleService implements ArticleContact
      * Collect articles from repository after searching
      * 
      * @param $query Array of query data
+     * @param $userId Id of the logged in user
      * @return Collection of articles
      */
-    public function searchArticles($query)
+    public function searchArticles($query, $userId = null)
     {
+        if (empty($query) && !empty($userId)) {
+            $userSetting = $this->userSettingService->getSettingByUserId($userId, ["source", "category", "author"])->toArray();
+            return $this->articleRepository->searchArticlesByPreference($userSetting);
+        }
         return $this->articleRepository->searchArticles($query);
     }
 }

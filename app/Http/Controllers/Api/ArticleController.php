@@ -5,10 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Contracts\Service\ArticleContact;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchArticleRequest;
-use App\Models\Article;
 use App\Traits\HttpResponses;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
@@ -34,7 +31,10 @@ class ArticleController extends Controller
     public function search(SearchArticleRequest $request)
     {
         $query = $request->Validated();
-        $articles = $this->articleService->searchArticles($query);
+        $user = auth('sanctum')->user();
+        $userId = $user ? $user->id : null;
+
+        $articles = $this->articleService->searchArticles($query, $userId);
 
         return $this->success($articles);
     }

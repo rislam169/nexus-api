@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('user_settings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger("user_id");
-            $table->json("source");
-            $table->json("category");
-            $table->json("author");
+            $table->json("source")->nullable();
+            $table->json("category")->nullable();
+            $table->json("author")->nullable();
             $table->timestamps();
 
             $table->foreign("user_id")->references("id")->on("users")->onDelete('cascade');
