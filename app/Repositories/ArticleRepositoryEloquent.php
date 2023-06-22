@@ -57,10 +57,12 @@ class ArticleRepositoryEloquent extends BaseRepository implements ArticleReposit
 
         // Search for keyword if available in query
         if (!empty($query["searchKey"])) {
-            $articles = $articles->where("title", 'like', '%' . $query["searchKey"] . '%')
-                ->orWhere("description", 'like', '%' . $query["searchKey"] . '%')
-                ->orWhere("category", $query["searchKey"]);
+            $articles = $articles->where(function ($q) use ($query) {
+                $q->where("title", 'like', '%' . $query["searchKey"] . '%');
+                $q->orWhere("description", 'like', '%' . $query["searchKey"] . '%');
+            });
         }
+
         return $articles->limit(50)->get();
     }
 
