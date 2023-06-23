@@ -22,7 +22,16 @@ class ArticleRepositoryEloquent extends BaseRepository implements ArticleReposit
 
     public function insertMultiple($articles)
     {
-        return $this->model->insert($articles);
+        // Make a collection to use the chunk method
+        $articles = collect($articles);
+
+        // It will chunk the dataset in smaller collections containing 500 values each. 
+        // Play with the value to get best result
+        $chunks = $articles->chunk(50);
+
+        foreach ($chunks as $chunk) {
+            $this->model->insert($chunk->toArray());
+        }
     }
 
     /**
