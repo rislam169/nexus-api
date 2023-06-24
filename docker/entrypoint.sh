@@ -21,4 +21,6 @@ php artisan import:articles --init
 
 php artisan serve --port=$PORT --host=0.0.0.0 --env=.env
 
+crond -f
+
 exec docker-php-entrypoint "$@"
