@@ -22,8 +22,8 @@ class TheNewYorkTimesArticleProvider implements ArticleProviderInterface
             return $this->reformat($response["docs"]);
         } catch (\Throwable $th) {
             Log::error($th);
-            return [];
         }
+        return [];
     }
 
     /** 

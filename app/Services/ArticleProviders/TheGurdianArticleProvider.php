@@ -14,6 +14,7 @@ class TheGurdianArticleProvider implements ArticleProviderInterface
     {
         $date = Carbon::now()->format("Y-m-d");
         try {
+
             foreach (config("article.categories") as $category) {
                 $response = Http::get("https://content.guardianapis.com/search?from-date=$date&to-date=$date&section=" . strtolower($category) . "&show-fields=headline,byline,thumbnail&show-references=author&show-elements=image&api-key=" . config("newsapi.thegurdian.api_key"));
                 $response = $response->collect()->get("response")["results"];
@@ -23,8 +24,8 @@ class TheGurdianArticleProvider implements ArticleProviderInterface
             }
         } catch (\Throwable $th) {
             Log::error($th);
-            return [];
         }
+        return [];
     }
 
     /** 

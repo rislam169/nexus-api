@@ -27,8 +27,8 @@ class NewsApiArticleProvider implements ArticleProviderInterface
             }
         } catch (\Throwable $th) {
             Log::error($th);
-            return [];
         }
+        return [];
     }
 
     /** 

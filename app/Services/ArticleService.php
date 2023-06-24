@@ -7,9 +7,6 @@ use App\Contracts\Service\ArticleContact;
 use App\Services\ArticleProviders\NewsApiArticleProvider;
 use App\Services\ArticleProviders\TheGurdianArticleProvider;
 use App\Services\ArticleProviders\TheNewYorkTimesArticleProvider;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class ArticleService implements ArticleContact
 {
@@ -28,14 +25,6 @@ class ArticleService implements ArticleContact
         $this->articleRepository = $articleRepository;
         $this->userSettingService = $userSettingService;
     }
-    /** News and article categoris to be fetched */
-    private $categories = [
-        "General",
-        "Health",
-        "Science",
-        "Sports",
-        "Technology"
-    ];
 
     /**
      * Fetch news from external api and store in our database

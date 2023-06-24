@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Contracts\Repositories\ArticleRepository;
 use App\Models\Article;
 use Carbon\Carbon;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Prettus\Repository\Eloquent\BaseRepository;
 
 class ArticleRepositoryEloquent extends BaseRepository implements ArticleRepository
@@ -30,7 +31,16 @@ class ArticleRepositoryEloquent extends BaseRepository implements ArticleReposit
         $chunks = $articles->chunk(50);
 
         foreach ($chunks as $chunk) {
-            $this->model->insert($chunk->toArray());
+            /** 
+             * Also possible with batch inserting like bellow line, but we loose meiliserch indexing
+             * $this->model->insert($chunk->toArray());
+             * 
+             * Although it is possible to batch indexing to meiliserch, but will more complicated
+             */
+
+            foreach ($chunk->toArray() as $article) {
+                $this->model->create($article);
+            }
         }
     }
 
@@ -42,7 +52,12 @@ class ArticleRepositoryEloquent extends BaseRepository implements ArticleReposit
      */
     public function searchArticles($query)
     {
-        $articles = $this->model->inRandomOrder();
+        $articles = $this->model;
+
+        // Search for keyword if available in query
+        if (!empty($query["searchKey"])) {
+            $articles = $articles->search($query["searchKey"]);
+        }
 
         // Search category if available in query
         if (!empty($query["category"])) {
@@ -64,15 +79,7 @@ class ArticleRepositoryEloquent extends BaseRepository implements ArticleReposit
             $articles = $articles->whereDate("published_at", "<=", Carbon::parse($query["toDate"]));
         }
 
-        // Search for keyword if available in query
-        if (!empty($query["searchKey"])) {
-            $articles = $articles->where(function ($q) use ($query) {
-                $q->where("title", 'like', '%' . $query["searchKey"] . '%');
-                $q->orWhere("description", 'like', '%' . $query["searchKey"] . '%');
-            });
-        }
-
-        return $articles->limit(50)->get();
+        return $articles->get()->shuffle();
     }
 
     public function searchArticlesByPreference($query)
