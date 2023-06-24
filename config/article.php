@@ -3,7 +3,7 @@
 return [
     "categories" => [
         "General",
-        "Health",
+        "Business",
         "Science",
         "Sports",
         "Technology"

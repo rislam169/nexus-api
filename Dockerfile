@@ -6,6 +6,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- \
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+COPY crontab /etc/crontabs/root
+
 WORKDIR /var/www
 COPY . .
 
